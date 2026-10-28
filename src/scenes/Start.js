@@ -5,12 +5,12 @@ export class Start extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('background', 'assets/bg.png');
-
+        this.load.atlasXML('player', 'assets/sheet.png', 'assets/sheet.xml');
     }
 
     create() {
-        this.background = this.add.sprite(640, 320, 'background');
+        this.player = this.add.sprite(640, 660, 'player', 'playerShip3_red.png');
+        player.setCollideWorldBounds(true);
         this.last_time = 0;
     }
 

@@ -9,12 +9,11 @@ const config = {
     height: 720,
     backgroundColor: '#000000',
     pixelArt: false,
-    physics: {default: "arcade"},
     scene: [
         Start
     ],
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.ENVELOP,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
 }
