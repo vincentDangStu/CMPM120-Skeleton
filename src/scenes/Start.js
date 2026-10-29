@@ -1,3 +1,6 @@
+import { Bullet } from '../gameobjects/bullet.js';
+import { Enemy } from '../gameobjects/enemy.js';
+
 export class Start extends Phaser.Scene {
 
     constructor() {
@@ -48,6 +51,7 @@ export class Start extends Phaser.Scene {
         this.arrowRight = this.input.keyboard.addKey("RIGHT", false, true);
         this.left = this.input.keyboard.addKey("A", false, true);
         this.right = this.input.keyboard.addKey("D", false, true);
+        this.shoot = this.input.keyboard.addKey("SPACE", false, true);
 
         this.graphics = this.add.graphics();
         this.graphics.lineStyle(2, 0xff0000);
@@ -128,6 +132,10 @@ export class Start extends Phaser.Scene {
         if (this.right.isDown) this.player.x += this.player.speed * dt;
         if (this.arrowLeft.isDown) this.player.x -= this.player.speed * dt;
         if (this.arrowRight.isDown) this.player.x += this.player.speed * dt;
+        if (this.shoot.isDown) {
+            let bullet = new Bullet(this, this.player.x, this.player.y, this.player.attack_angle + i*90, this.player.bullet_speed);
+            this.player_bullets.add(bullet);
+        }
     }
     
 }
