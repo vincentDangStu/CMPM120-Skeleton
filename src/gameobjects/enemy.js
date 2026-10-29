@@ -19,7 +19,14 @@ export class Enemy extends Phaser.GameObjects.PathFollower {
 
     enemyTakeDamage()
     {   
-        if (this.hp <= 1) this.destroy(true);
+        if (this.hp <= 1) 
+        {
+            this.scene.explosion.play({
+                loop: false,
+                volume: 0.05
+            })
+            this.destroy(true);
+        }
         else this.hp --;
     }
 

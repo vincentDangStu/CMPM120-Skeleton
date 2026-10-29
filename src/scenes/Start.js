@@ -27,6 +27,8 @@ export class Start extends Phaser.Scene {
         this.load.audio('game_over', 'assets/sfx_lose.ogg');
         this.load.audio('laser_sfx', 'assets/sfx_laser2.ogg');
         this.load.audio('player_damage', 'assets/sfx_twoTone.ogg');
+        this.load.audio('explosion', 'assets/explosion.wav');
+        this.load.audio('bgm', 'assets/technological_antarctica.ogg');
     }
 
     create() {
@@ -36,6 +38,13 @@ export class Start extends Phaser.Scene {
         this.laser_sfx = this.sound.add('laser_sfx');
         this.game_over_sfx = this.sound.add('game_over');
         this.player_dmg_sfx = this.sound.add('player_damage');  
+        this.explosion = this.sound.add('explosion');
+        this.bgm = this.sound.add('bgm');
+
+        this.bgm.play({
+            loop: true,
+            volume:0.02
+        })
 
         this.background.displayWidth = 1280;
         this.background.displayHeight = 720;
@@ -230,6 +239,7 @@ export class Start extends Phaser.Scene {
         }
         else if (this.enemy_group.children.entries.length == 0 && this.current_wave == this.total_waves && !this.level_complete)
         {
+            this.bgm.stop();
             this.level_complete = true;
             this.scene.stop('Start');
             this.scene.start('LevelComplete', {
