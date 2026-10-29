@@ -1,0 +1,29 @@
+[
+   {
+    "sprite": "small_fry",
+    "name": "Recruits",
+    "description": "Death comes with wings.",
+    "count": 5,
+    "speed": 20000,
+    "pattern": ["direct","snake","direct","snake","snake","snake"],
+    "hp": 1
+},
+    {
+    "sprite": "medium_fry",
+    "name": "Soldiers",
+    "description": "Are you scared yet?",
+    "count": 10,
+    "speed": 30000,
+    "pattern": ["direct","direct","snake","direct","snake","snake"],
+    "hp": 2
+},
+    {
+    "sprite": "big_fry",
+    "name": "Elites",
+    "description": "Here comes the big guns!",
+    "count": 8,
+    "speed": 40000,
+    "pattern": ["direct","snake","direct","direct","direct","snake"],
+    "hp": 3
+}
+]
