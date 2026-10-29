@@ -14,6 +14,10 @@ export class Start extends Phaser.Scene {
 
         this.load.image('projectile', 'assets/laserBlue05.png');
         this.load.json('spawns', 'data/spawns.json');
+
+        this.load.image('small_fry', 'assets/ufoGreen.png');
+        this.load.image('medium_fry', 'assets/ufoYellow.png');
+        this.load.image('big_fry', 'assets/ufoRed.png');
     }
 
     create() {
@@ -41,7 +45,7 @@ export class Start extends Phaser.Scene {
         this.graphics.lineStyle(2, 0xff0000);
         this.newWave();
 
-        this.player.hp = 3;
+        this.player.hp = 5;
         this.player.speed = 300;
         this.player.score = 0;
         this.player.bullet_speed = 500;
@@ -65,34 +69,68 @@ export class Start extends Phaser.Scene {
         // this.time.delayedCall(3000, () => this.playerTakeDamage());
     }
     
-    getPath()
+    getPath(pattern)
     {
-        let path = this.add.path(1500, 360);
-        return path;
+        let path = this.add.path(640, 0);
+        if (pattern == "direct")
+        {
+            path.lineTo(640, 1120)
+            return path;
+        }
+        else if (pattern == "snake")
+        {
+            return path;
+        }
+   
     }
     
     newWave()
     {
+        const spawns = this.cache.json.get("spawns");
+        let wave = this.current_wave - 1;
+        const spawn = spawns[wave];
         this.wave_label.text = "Wave " + this.current_wave;
+        this.description_label.text = spawn.sprite;
 
-        this.description_label.text = "Dodge This!"; 
         this.time.delayedCall(2000, () => { this.wave_label.text = "";
                                             this.description_label.text = ""; });
 
-        let n = 3*Math.log(this.current_wave+1);
-        this.pending = 0;
-        this.graphics.clear();
-        this.graphics.lineStyle(2, 0xff0000);
-        for (let i = 0; i < n; ++i)
+        for (let i = 0; i < spawn.count; ++i)
         {
-            let path = this.getPath();
-            this.pending += 1;
+            const dist = 0 + 40*Math.pow(-1, i)*i; 
+            wave = this.current_wave - 1;
+            const pattern = spawns[wave].pattern;
+            let path = this.getPath(pattern);
+            path.draw(this.graphics)
+            const e = new Enemy(this, path, 640 + dist, 0, spawn.sprite, spawn.speed, spawn.hp);
+            e.setScale(0.5);
+            e.setDepth(10);
+            this.enemy_group.add(e);
+            this.physics.add.existing(e);
+            
         }
+        const gridColumns = 5;
+        const gridRows = 3;
+        const cellWidth = 90;
+        const cellHeight = 90;
+
+        Phaser.Actions.GridAlign(this.enemy_group.getChildren(),
+        {
+            width: gridColumns,
+            height: gridRows,
+            cellWidth: cellWidth,
+            cellHeight: cellHeight,
+            x: (1280 - gridColumns * cellWidth) / 2,
+            y: -300
+        });
+        this.enemy_group.getChildren().forEach(enemy => enemy.restartFollow(spawn.speed));
+
     }
+
 
     playerTakeDamage()
     {
-        this.player.hp -= 1;
+        this.player.hp --;
 
         this.player.tint = 0xff0000;
             
@@ -153,8 +191,7 @@ export class Start extends Phaser.Scene {
         }
 
         this.score_label.text = "HP: " + this.player.hp + " \nPoints: " + this.player.score + " \nWave: " + this.current_wave + "/" + this.total_waves + " \nEnemies: " + this.enemy_group.children.entries.length;
-        this.physics.world.overlap(this.player_bullets, this.enemy_group, (b,e) => {e.destroy(true); b.destroy(true); this.player.score++; this.checkLevelUp(); });
-        this.physics.world.overlap(this.player, this.enemy_bullets, (p,b) => { p.hp -= b.damage; b.destroy(true); this.checkEndGame(); });
+        this.physics.world.overlap(this.player_bullets, this.enemy_group, (b,e) => {e.enemyTakeDamage();b.destroy(true); this.player.score += 100;  });
     }
     
 }

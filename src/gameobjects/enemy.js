@@ -1,39 +1,52 @@
 import {Bullet} from "./bullet.js";
 
-export class Enemy extends Phaser.GameObjects.Sprite {
-    constructor(scene, x, y, which, direction, speed, attack_rate, bullet_speed, damage, target, time){
-         super(scene, x, y, which);
+export class Enemy extends Phaser.GameObjects.PathFollower {
+    constructor(scene, path, x, y, which, duration, hp){
+         super(scene, path, x, y, which);
          scene.add.existing(this);
          scene.physics.add.existing(this);
-         this.direction = Phaser.Math.DegToRad(direction);
          this.scene = scene;
-         this.speed = speed;
-         this.rotation = this.direction;
-         this.attack_rate = attack_rate;
-         this.bullet_speed = bullet_speed;
-         this.damage = damage;
-         this.target = target;
-         this.last_attack = time + Math.random()*this.attack_rate;
+         this.hp = hp
+         this.startFollow({
+            duration: duration,
+            repeat: 0,
+            yoyo: true,
+            rotateToPath: true,
+            rotationOffset: 90,
+            offset: {y: -360}
+        })
+    }
+
+    enemyTakeDamage()
+    {   
+        if (this.hp <= 1) this.destroy(true);
+        else this.hp --;
+    }
+
+    restartFollow(duration)
+    {
+        this.startFollow({
+            duration: duration, // how long to follow, in ms
+            repeat: 0, // how often to repeat the path (-1: keep looping)
+            yoyo: false, // yoyo: true makes the follower go back and forth 
+            rotateToPath: true, // adjust rotation to path 
+            rotationOffset: 90,// if the sprite needs to be rotated to face the path
+            offset: {y: -360}
+        })
     }
 
     preUpdate(time, delta)
     {
-        let dt = delta/1000;
-
-        const dx = this.target.x - this.x;
-        const dy = this.target.y - this.y;
-        const angle = Math.atan2(dy, dx);
-        this.rotation = angle+2*Math.PI/2;
-        if (Math.abs(dx) > 10 || Math.abs(dy) > 10)
+        super.preUpdate(time, delta);
+        if (this.pathTween.progress > 0.5 && this.pending)
         {
-            this.x += Math.cos(angle)*this.speed*dt;
-            this.y += Math.sin(angle)*this.speed*dt;
+            this.scene.pending--;
+            this.pending = false;
         }
-        if (this.last_attack + this.attack_rate < time)
+        if (!this.isFollowing())
         {
-            this.last_attack = time;
-            let b = new Bullet(this.scene, this.x, this.y, this.angle+180, this.bullet_speed, this.damage);
-            this.scene.enemy_bullets.add(b);
+            this.scene.playerTakeDamage();
+            this.destroy();
         }
     }
 }
