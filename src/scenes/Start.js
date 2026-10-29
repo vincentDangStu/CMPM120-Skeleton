@@ -31,11 +31,15 @@ export class Start extends Phaser.Scene {
         this.player.body.setCollideWorldBounds(true);
 
         this.enemy_group = this.add.group("enemies");
-        this.wave = 1;
+        this.current_wave = 1;
+        this.total_waves = 3;
         this.wave_label = this.add.text(640, 100, "", { fontSize: '64px', fill: '#FFF', align: "center" });
         this.wave_label.setOrigin(0.5, 0.5);
         this.description_label = this.add.text(640, 180, "", { fontSize: '32px', fill: '#FFF', align: "center" });
         this.description_label.setOrigin(0.5, 0.5);
+        this.graphics = this.add.graphics();
+        this.graphics.lineStyle(2, 0xff0000);
+        this.newWave();
 
         this.player.hp = 3;
         this.player.speed = 300;
@@ -56,13 +60,9 @@ export class Start extends Phaser.Scene {
         this.right = this.input.keyboard.addKey("D", false, true);
         this.shoot = this.input.keyboard.addKey("SPACE", false, true);
 
-        this.graphics = this.add.graphics();
-        this.graphics.lineStyle(2, 0xff0000);
-
-        this.newWave();
-        this.time.delayedCall(1000, () => this.playerTakeDamage());
-        this.time.delayedCall(2000, () => this.playerTakeDamage());
-        this.time.delayedCall(3000, () => this.playerTakeDamage());
+        // this.time.delayedCall(1000, () => this.playerTakeDamage());
+        // this.time.delayedCall(2000, () => this.playerTakeDamage());
+        // this.time.delayedCall(3000, () => this.playerTakeDamage());
     }
     
     getPath()
@@ -73,13 +73,13 @@ export class Start extends Phaser.Scene {
     
     newWave()
     {
-        this.wave_label.text = "Wave " + this.wave;
+        this.wave_label.text = "Wave " + this.current_wave;
 
         this.description_label.text = "Dodge This!"; 
         this.time.delayedCall(2000, () => { this.wave_label.text = "";
                                             this.description_label.text = ""; });
 
-        let n = 3*Math.log(this.wave+1);
+        let n = 3*Math.log(this.current_wave+1);
         this.pending = 0;
         this.graphics.clear();
         this.graphics.lineStyle(2, 0xff0000);
@@ -146,7 +146,13 @@ export class Start extends Phaser.Scene {
             this.player_bullets.add(bullet);
         }
 
-        this.score_label.text = "HP: " + this.player.hp + " \nPoints: " + this.player.score + " \nWave: " + this.wave + " \nEnemies: " + this.enemy_group.children.entries.length;
+        if (this.enemy_group.children.entries.length == 0 && this.current_wave != this.total_waves)
+        {
+            this.current_wave++;
+            this.newWave();
+        }
+
+        this.score_label.text = "HP: " + this.player.hp + " \nPoints: " + this.player.score + " \nWave: " + this.current_wave + "/" + this.total_waves + " \nEnemies: " + this.enemy_group.children.entries.length;
         this.physics.world.overlap(this.player_bullets, this.enemy_group, (b,e) => {e.destroy(true); b.destroy(true); this.player.score++; this.checkLevelUp(); });
         this.physics.world.overlap(this.player, this.enemy_bullets, (p,b) => { p.hp -= b.damage; b.destroy(true); this.checkEndGame(); });
     }
