@@ -1,5 +1,5 @@
 import { Bullet } from '../gameobjects/bullet.js';
-import { Enemy } from '../gameobjects/enemy.js';
+import { Enemy, Drop } from '../gameobjects/enemy.js';
 
 export class Start extends Phaser.Scene {
 
@@ -24,6 +24,10 @@ export class Start extends Phaser.Scene {
         this.load.image('medium_fry', 'assets/ufoYellow.png');
         this.load.image('big_fry', 'assets/ufoRed.png');
 
+        this.load.image('speed_up', 'assets/powerupBlue_bolt.png');
+        this.load.image('slow_down', 'assets/powerupRed_bolt.png');
+        this.load.image('heal_up', 'assets/pill_green.png');
+
         this.load.audio('game_over', 'assets/sfx_lose.ogg');
         this.load.audio('laser_sfx', 'assets/sfx_laser2.ogg');
         this.load.audio('player_damage', 'assets/sfx_twoTone.ogg');
@@ -43,7 +47,7 @@ export class Start extends Phaser.Scene {
 
         this.bgm.play({
             loop: true,
-            volume:0.02
+            volume:0.10
         })
 
         this.background.displayWidth = 1280;
@@ -68,6 +72,7 @@ export class Start extends Phaser.Scene {
         this.newWave();
 
         this.player.hp = 5;
+        this.player.maxHp = 5;
         this.player.speed = 300;
         this.player.score = this.start_score;
         this.player.bullet_speed = 500;
@@ -79,6 +84,7 @@ export class Start extends Phaser.Scene {
         this.last_time = 0;
         this.player_bullets = this.add.group("player_bullets");
         this.enemy_bullets = this.add.group("enemy_bullets");
+        this.drops = this.add.group("drops");
 
         this.arrowLeft = this.input.keyboard.addKey("LEFT", false, true);
         this.arrowRight = this.input.keyboard.addKey("RIGHT", false, true);
@@ -209,6 +215,8 @@ export class Start extends Phaser.Scene {
                 loop: false,
                 volume: 0.20
             })
+
+            this.bgm.stop()
             this.scene.stop("Start");
             this.scene.start('GameOver');
         }
@@ -228,7 +236,7 @@ export class Start extends Phaser.Scene {
             this.player_bullets.add(bullet);
             this.laser_sfx.play({
                 loop: false,
-                volume: 0.05
+                volume: 0.10
             })
         }
 
@@ -251,6 +259,25 @@ export class Start extends Phaser.Scene {
 
         this.score_label.text = "HP: " + this.player.hp + " \nPoints: " + this.player.score + " \nWave: " + this.current_wave + "/" + this.total_waves + " \nEnemies: " + this.enemy_group.children.entries.length;
         this.physics.world.overlap(this.player_bullets, this.enemy_group, (b,e) => {e.enemyTakeDamage();b.destroy(true); this.player.score += 100;  });
+        this.physics.world.overlap(this.player, this.drops, (player, drop) => this.collectDrop(drop));
+    }
+
+    collectDrop(drop) {
+        switch (drop.dropType)
+        {
+            case 'speed_up':
+                this.player.speed *= 1.25;
+                this.time.delayedCall(5000, () => this.player.speed = 300);
+                break;
+            case 'slow_down':
+                this.player.speed *= 0.50;
+                this.time.delayedCall(5000, () => this.player.speed = 300);
+                break;
+            case 'heal_up':
+                this.player.hp = Math.min(this.player.maxHp || 5, this.player.hp + 1);
+                break;
+        }
+        drop.destroy();
     }
     
 }

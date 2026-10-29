@@ -1,5 +1,21 @@
 import {Bullet} from "./bullet.js";
 
+export class Drop extends Phaser.GameObjects.Sprite {
+    constructor(scene, x, y, type) {
+        super(scene, x, y, type);
+        this.dropType = type;
+        scene.add.existing(this);
+        scene.physics.add.existing(this);
+        this.setScale(2);
+        this.body.setVelocityY(150);
+    }
+
+    preUpdate(time, delta) {
+        super.preUpdate(time, delta);
+        if (this.y > 740) this.destroy();
+    }
+}
+
 export class Enemy extends Phaser.GameObjects.PathFollower {
     constructor(scene, path, x, y, which, duration, hp){
          super(scene, path, x, y, which);
@@ -25,6 +41,14 @@ export class Enemy extends Phaser.GameObjects.PathFollower {
                 loop: false,
                 volume: 0.05
             })
+
+            if (Math.random() < 0.25)
+            {
+                const powerUps = ['slow_down', 'speed_up', 'heal_up'];
+                const dropType = Phaser.Utils.Array.GetRandom(powerUps);
+                this.scene.drops.add(new Drop(this.scene, this.x, this.y, dropType));
+            }
+
             this.destroy(true);
         }
         else this.hp --;
