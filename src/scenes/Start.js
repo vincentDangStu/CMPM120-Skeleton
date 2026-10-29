@@ -11,6 +11,9 @@ export class Start extends Phaser.Scene {
         this.load.image('background', 'assets/darkPurple.png');
         this.load.image('spaceBg', 'assets/black.png');
         this.load.atlasXML('player', 'assets/sheet.png', 'assets/sheet.xml');
+
+        this.load.image('projectile', 'assets/laserBlue05.png');
+        this.load.json('spawns', 'data/spawns.json');
     }
 
     create() {
@@ -39,9 +42,9 @@ export class Start extends Phaser.Scene {
         this.player.score = 0;
         this.player.bullet_speed = 500;
         this.player.last_attack = 0;
-        this.player.attack_speed = 1000;
+        this.player.attack_speed = 250;
         this.player.attack_angle = 0;
-        this.score_label = this.add.text(300, 100, 'Points: ' + this.player.score, { fontSize: '32px', fill: '#FFF' });
+        this.score_label = this.add.text(300, 80, 'Points: ' + this.player.score, { fontSize: '32px', fill: '#FFF' });
         
         this.last_time = 0;
         this.player_bullets = this.add.group("player_bullets");
@@ -57,19 +60,14 @@ export class Start extends Phaser.Scene {
         this.graphics.lineStyle(2, 0xff0000);
 
         this.newWave();
-
+        this.time.delayedCall(1000, () => this.playerTakeDamage());
+        this.time.delayedCall(2000, () => this.playerTakeDamage());
+        this.time.delayedCall(3000, () => this.playerTakeDamage());
     }
     
     getPath()
     {
-        // your path *has to* start at 1500, 360
         let path = this.add.path(1500, 360);
-
-       // the "play area" is from (0,0) to (1280,720)
-        path.quadraticBezierTo(1000, 100, 640, 360);
-        path.quadraticBezierTo(640, 100, 300, 360);
-        // and it has to end at -300,360 (you can use something other than a line, of course)
-        path.lineTo(-300, 360);
         return path;
     }
     
@@ -78,7 +76,7 @@ export class Start extends Phaser.Scene {
         this.wave_label.text = "Wave " + this.wave;
 
         this.description_label.text = "Dodge This!"; 
-        this.time.delayedCall(5000, () => { this.wave_label.text = "";
+        this.time.delayedCall(2000, () => { this.wave_label.text = "";
                                             this.description_label.text = ""; });
 
         let n = 3*Math.log(this.wave+1);
@@ -124,6 +122,16 @@ export class Start extends Phaser.Scene {
 
         this.checkEndGame();
     }
+
+    checkEndGame()
+    {
+        if (this.player.hp <= 0)
+        {
+            this.scene.stop("Start");
+            this.scene.start('GameOver');
+        }
+    }
+
     update(time) {
         let dt = (time - this.last_time)/1000;
         this.last_time = time;
@@ -132,10 +140,15 @@ export class Start extends Phaser.Scene {
         if (this.right.isDown) this.player.x += this.player.speed * dt;
         if (this.arrowLeft.isDown) this.player.x -= this.player.speed * dt;
         if (this.arrowRight.isDown) this.player.x += this.player.speed * dt;
-        if (this.shoot.isDown) {
-            let bullet = new Bullet(this, this.player.x, this.player.y, this.player.attack_angle + i*90, this.player.bullet_speed);
+        if (this.shoot.isDown && time > this.player.last_attack + this.player.attack_speed) {
+            this.player.last_attack = time;
+            let bullet = new Bullet(this, this.player.x, this.player.y - 50, this.player.attack_angle + 270, this.player.bullet_speed);
             this.player_bullets.add(bullet);
         }
+
+        this.score_label.text = "HP: " + this.player.hp + " \nPoints: " + this.player.score + " \nWave: " + this.wave + " \nEnemies: " + this.enemy_group.children.entries.length;
+        this.physics.world.overlap(this.player_bullets, this.enemy_group, (b,e) => {e.destroy(true); b.destroy(true); this.player.score++; this.checkLevelUp(); });
+        this.physics.world.overlap(this.player, this.enemy_bullets, (p,b) => { p.hp -= b.damage; b.destroy(true); this.checkEndGame(); });
     }
     
 }
