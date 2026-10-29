@@ -6,21 +6,25 @@ export class Start extends Phaser.Scene {
 
     preload() {
         this.load.image('background', 'assets/darkPurple.png');
+        this.load.image('spaceBg', 'assets/black.png');
         this.load.atlasXML('player', 'assets/sheet.png', 'assets/sheet.xml');
     }
 
     create() {
         this.background = this.add.image(640, 360, 'background');
+        this.spaceBg = this.add.image(640, 360, 'spaceBg');
         this.player = this.add.sprite(640, 600, 'player', 'playerShip3_blue.png');
-        
-        this.background.displayWidth = 720;
+
+        this.background.displayWidth = 1280;
         this.background.displayHeight = 720;
+        this.spaceBg.displayWidth = 720;
+        this.spaceBg.displayHeight = 720;
 
         this.physics.add.existing(this.player);
         this.physics.world.setBounds(290, 0, 700, 720);
         this.player.body.setCollideWorldBounds(true);
 
-        this.obstacle_group = this.add.group("obstacles");
+        this.enemy_group = this.add.group("enemies");
         this.wave = 1;
         this.wave_label = this.add.text(640, 100, "", { fontSize: '64px', fill: '#FFF', align: "center" });
         this.wave_label.setOrigin(0.5, 0.5);
@@ -30,8 +34,18 @@ export class Start extends Phaser.Scene {
         this.player.hp = 3;
         this.player.speed = 300;
         this.player.score = 0;
+        this.player.bullet_speed = 500;
+        this.player.last_attack = 0;
+        this.player.attack_speed = 1000;
+        this.player.attack_angle = 0;
         this.score_label = this.add.text(300, 100, 'Points: ' + this.player.score, { fontSize: '32px', fill: '#FFF' });
         
+        this.last_time = 0;
+        this.player_bullets = this.add.group("player_bullets");
+        this.enemy_bullets = this.add.group("enemy_bullets");
+
+        this.arrowLeft = this.input.keyboard.addKey("LEFT", false, true);
+        this.arrowRight = this.input.keyboard.addKey("RIGHT", false, true);
         this.left = this.input.keyboard.addKey("A", false, true);
         this.right = this.input.keyboard.addKey("D", false, true);
 
@@ -40,7 +54,6 @@ export class Start extends Phaser.Scene {
 
         this.newWave();
 
-        this.last_time = 0;
     }
     
     getPath()
@@ -113,6 +126,8 @@ export class Start extends Phaser.Scene {
         
         if (this.left.isDown) this.player.x -= this.player.speed * dt;
         if (this.right.isDown) this.player.x += this.player.speed * dt;
+        if (this.arrowLeft.isDown) this.player.x -= this.player.speed * dt;
+        if (this.arrowRight.isDown) this.player.x += this.player.speed * dt;
     }
     
 }
