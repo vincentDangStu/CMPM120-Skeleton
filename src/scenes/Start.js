@@ -12,9 +12,12 @@ export class Start extends Phaser.Scene {
     create() {
         this.background = this.add.image(640, 360, 'background');
         this.player = this.add.sprite(640, 600, 'player', 'playerShip3_red.png');
-        this.physics.add.existing(this.player);
+        
+        this.background.displayWidth = 720;
+        this.background.displayHeight = 720;
 
-        this.physics.world.setBounds(0, 0, 1280, 720);
+        this.physics.add.existing(this.player);
+        this.physics.world.setBounds(290, 0, 700, 720);
         this.player.body.setCollideWorldBounds(true);
 
         this.player.hp = 100;
