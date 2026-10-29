@@ -7,6 +7,11 @@ export class Start extends Phaser.Scene {
         super('Start');
     }
 
+    init(data) {
+        this.level = data.level || 1;
+        this.start_score = data.score || 0;
+    }
+
     preload() {
         this.load.image('background', 'assets/darkPurple.png');
         this.load.image('spaceBg', 'assets/black.png');
@@ -18,12 +23,19 @@ export class Start extends Phaser.Scene {
         this.load.image('small_fry', 'assets/ufoGreen.png');
         this.load.image('medium_fry', 'assets/ufoYellow.png');
         this.load.image('big_fry', 'assets/ufoRed.png');
+
+        this.load.audio('game_over', 'assets/sfx_lose.ogg');
+        this.load.audio('laser_sfx', 'assets/sfx_laser2.ogg');
+        this.load.audio('player_damage', 'assets/sfx_twoTone.ogg');
     }
 
     create() {
         this.background = this.add.image(640, 360, 'background');
         this.spaceBg = this.add.image(640, 360, 'spaceBg');
         this.player = this.add.sprite(640, 600, 'player', 'playerShip3_blue.png');
+        this.laser_sfx = this.sound.add('laser_sfx');
+        this.game_over_sfx = this.sound.add('game_over');
+        this.player_dmg_sfx = this.sound.add('player_damage');  
 
         this.background.displayWidth = 1280;
         this.background.displayHeight = 720;
@@ -37,6 +49,7 @@ export class Start extends Phaser.Scene {
         this.enemy_group = this.add.group("enemies");
         this.current_wave = 1;
         this.total_waves = 3;
+        this.level_complete = false;
         this.wave_label = this.add.text(640, 100, "", { fontSize: '64px', fill: '#FFF', align: "center" });
         this.wave_label.setOrigin(0.5, 0.5);
         this.description_label = this.add.text(640, 180, "", { fontSize: '32px', fill: '#FFF', align: "center" });
@@ -47,7 +60,7 @@ export class Start extends Phaser.Scene {
 
         this.player.hp = 5;
         this.player.speed = 300;
-        this.player.score = 0;
+        this.player.score = this.start_score;
         this.player.bullet_speed = 500;
         this.player.last_attack = 0;
         this.player.attack_speed = 250;
@@ -84,7 +97,7 @@ export class Start extends Phaser.Scene {
             let height = 400;
             path.lineTo(640, height);
 
-            while (height <=1100) {
+            while (height <=1000) {
                 path.lineTo(farLeft, height);
                 height += 50;
                 path.lineTo(farLeft, height);
@@ -108,16 +121,16 @@ export class Start extends Phaser.Scene {
 
         this.time.delayedCall(2000, () => { this.wave_label.text = "";
                                             this.description_label.text = ""; });
+        const followDuration = Math.max(3000, spawn.speed - ((this.level - 1) * 5000));
 
         for (let i = 0; i < spawn.count; ++i)
         {
             const dist = 0 + 40*Math.pow(-1, i)*i; 
             wave = this.current_wave - 1;
-            // const pattern = spawns[wave].pattern;
-            const pattern = "snake";
+            const patterns = spawns[wave].pattern;
+            const pattern = patterns[(this.level - 1) % patterns.length];
             let path = this.getPath(pattern);
-            path.draw(this.graphics)
-            const e = new Enemy(this, path, 640 + dist, 0, spawn.sprite, spawn.speed, spawn.hp);
+            const e = new Enemy(this, path, 640 + dist, 0, spawn.sprite, followDuration, spawn.hp);
             e.setScale(0.5);
             e.setDepth(10);
             this.enemy_group.add(e);
@@ -138,7 +151,7 @@ export class Start extends Phaser.Scene {
             x: (1280 - gridColumns * cellWidth) / 2,
             y: -300
         });
-        this.enemy_group.getChildren().forEach(enemy => enemy.restartFollow(spawn.speed));
+        this.enemy_group.getChildren().forEach(enemy => enemy.restartFollow(followDuration));
 
     }
 
@@ -146,7 +159,10 @@ export class Start extends Phaser.Scene {
     playerTakeDamage()
     {
         this.player.hp --;
-
+        this.player_dmg_sfx.play({
+            loop: false,
+            volume: 0.10
+        })
         this.player.tint = 0xff0000;
             
         this.time.delayedCall(500, () => { this.player.tint = 0xffffff; });
@@ -180,6 +196,10 @@ export class Start extends Phaser.Scene {
     {
         if (this.player.hp <= 0)
         {
+            this.game_over_sfx.play({
+                loop: false,
+                volume: 0.20
+            })
             this.scene.stop("Start");
             this.scene.start('GameOver');
         }
@@ -197,12 +217,26 @@ export class Start extends Phaser.Scene {
             this.player.last_attack = time;
             let bullet = new Bullet(this, this.player.x, this.player.y - 50, this.player.attack_angle + 270, this.player.bullet_speed);
             this.player_bullets.add(bullet);
+            this.laser_sfx.play({
+                loop: false,
+                volume: 0.05
+            })
         }
 
         if (this.enemy_group.children.entries.length == 0 && this.current_wave != this.total_waves)
         {
             this.current_wave++;
             this.newWave();
+        }
+        else if (this.enemy_group.children.entries.length == 0 && this.current_wave == this.total_waves && !this.level_complete)
+        {
+            this.level_complete = true;
+            this.scene.stop('Start');
+            this.scene.start('LevelComplete', {
+                score: this.player.score,
+                level: this.level,
+                nextLevel: this.level + 1
+            });
         }
 
         this.score_label.text = "HP: " + this.player.hp + " \nPoints: " + this.player.score + " \nWave: " + this.current_wave + "/" + this.total_waves + " \nEnemies: " + this.enemy_group.children.entries.length;

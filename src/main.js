@@ -1,5 +1,6 @@
 import { Start } from './scenes/Start.js';
 import { GameOver } from './scenes/GameOver.js';
+import { LevelComplete } from './scenes/LevelComplete.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -12,7 +13,7 @@ const config = {
     pixelArt: false,
     physics: {default: 'arcade'},
     scene: [
-        Start, GameOver
+        Start, GameOver, LevelComplete
     ],
     scale: {
         mode: Phaser.Scale.ENVELOP,

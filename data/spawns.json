@@ -5,7 +5,7 @@
     "description": "Death comes with wings.",
     "count": 5,
     "speed": 20000,
-    "pattern": ["direct"],
+    "pattern": ["direct","snake","direct","snake","snake","snake"],
     "hp": 1
 },
     {
@@ -14,7 +14,7 @@
     "description": "Are you scared yet?",
     "count": 10,
     "speed": 30000,
-    "pattern": ["direct"],
+    "pattern": ["direct","direct","snake","direct","snake","snake"],
     "hp": 2
 },
     {
@@ -23,7 +23,7 @@
     "description": "Here comes the big guns!",
     "count": 8,
     "speed": 40000,
-    "pattern": ["direct"],
+    "pattern": ["direct","snake","direct","direct","direct","snake"],
     "hp": 3
 }
 ]
