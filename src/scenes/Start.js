@@ -79,6 +79,20 @@ export class Start extends Phaser.Scene {
         }
         else if (pattern == "snake")
         {
+            const farLeft = 740;
+            const farRight = 540;
+            let height = 400;
+            path.lineTo(640, height);
+
+            while (height <=1100) {
+                path.lineTo(farLeft, height);
+                height += 50;
+                path.lineTo(farLeft, height);
+                path.lineTo(farRight, height);
+                height += 50
+                path.lineTo(farRight, height);
+            }
+
             return path;
         }
    
@@ -90,7 +104,7 @@ export class Start extends Phaser.Scene {
         let wave = this.current_wave - 1;
         const spawn = spawns[wave];
         this.wave_label.text = "Wave " + this.current_wave;
-        this.description_label.text = spawn.sprite;
+        this.description_label.text = spawn.count + " " + spawn.name;
 
         this.time.delayedCall(2000, () => { this.wave_label.text = "";
                                             this.description_label.text = ""; });
@@ -99,7 +113,8 @@ export class Start extends Phaser.Scene {
         {
             const dist = 0 + 40*Math.pow(-1, i)*i; 
             wave = this.current_wave - 1;
-            const pattern = spawns[wave].pattern;
+            // const pattern = spawns[wave].pattern;
+            const pattern = "snake";
             let path = this.getPath(pattern);
             path.draw(this.graphics)
             const e = new Enemy(this, path, 640 + dist, 0, spawn.sprite, spawn.speed, spawn.hp);

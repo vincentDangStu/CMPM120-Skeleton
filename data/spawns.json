@@ -1,16 +1,16 @@
 [
    {
     "sprite": "small_fry",
-    "name": "BEEEEES?",
+    "name": "Recruits",
     "description": "Death comes with wings.",
     "count": 5,
-    "speed": 5000,
+    "speed": 20000,
     "pattern": ["direct"],
     "hp": 1
 },
     {
     "sprite": "medium_fry",
-    "name": "Scare-nacle",
+    "name": "Soldiers",
     "description": "Are you scared yet?",
     "count": 10,
     "speed": 30000,
@@ -19,10 +19,10 @@
 },
     {
     "sprite": "big_fry",
-    "name": "Miss-Aisles",
+    "name": "Elites",
     "description": "Here comes the big guns!",
-    "count": 3,
-    "speed": 5000,
+    "count": 8,
+    "speed": 40000,
     "pattern": ["direct"],
     "hp": 3
 }
